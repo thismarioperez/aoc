@@ -1,33 +1,7 @@
 export type Matrix<T> = T[][];
 
-/**
- * Rotate the given matrix clockwise by 90 degrees.
- * @param matrix The matrix to rotate.
- * @returns The rotated matrix.
- */
-export const rotateMatrix = <T>(matrix: Matrix<T>): Matrix<T> => {
-    if (matrix.length === 0) {
-        return [];
-    }
-
-    const rows = matrix.length;
-    const cols = matrix[0].length;
-
-    // Create a new matrix with swapped rows and columns
-    const rotatedMatrix: Matrix<T> = new Array(cols);
-
-    // rotate the matrix
-    for (let i = 0; i < cols; ++i) {
-        for (let j = 0; j < rows; ++j) {
-            rotatedMatrix[i][j] = matrix[j][i];
-        }
-    }
-
-    return rotatedMatrix;
-};
-
 // direction vectors
-const MATRIX_DIRECTIONS = [
+export const MATRIX_DIRECTIONS = [
     [0, 1], // right
     [0, -1], // left
     [1, 0], // down
@@ -38,44 +12,15 @@ const MATRIX_DIRECTIONS = [
     [-1, -1], // up left
 ];
 
-/**
- * Searches for occurrences of a given string in all directions within a matrix.
- *
- * @param matrix - A 2D array of strings representing the matrix to be searched.
- * @param searchStr - The string to search for within the matrix.
- * @returns The number of occurrences of the searchStr found in the matrix.
- */
-export const searchMatrixForStringOccurences = (
-    matrix: Matrix<string>,
-    searchStr: string
-): number => {
-    const rows = matrix.length;
-    const cols = matrix[0].length;
-
-    let count = 0;
-
-    // Search from each starting position in the matrix
-    for (let startRow = 0; startRow < rows; ++startRow) {
-        for (let startCol = 0; startCol < cols; ++startCol) {
-            // loop through each direction
-            for (const [dx, dy] of MATRIX_DIRECTIONS) {
-                if (
-                    searchInDirection(
-                        matrix,
-                        searchStr,
-                        startRow,
-                        startCol,
-                        dx,
-                        dy
-                    )
-                ) {
-                    count += 1;
-                }
-            }
-        }
-    }
-
-    return count;
+export const MATRIX_DIRECTIONS_MAP = {
+    right: MATRIX_DIRECTIONS[0],
+    left: MATRIX_DIRECTIONS[1],
+    down: MATRIX_DIRECTIONS[2],
+    up: MATRIX_DIRECTIONS[3],
+    "down-right": MATRIX_DIRECTIONS[4],
+    "down-left": MATRIX_DIRECTIONS[5],
+    "up-right": MATRIX_DIRECTIONS[6],
+    "up-left": MATRIX_DIRECTIONS[7],
 };
 
 /**
@@ -122,4 +67,30 @@ export const searchInDirection = (
     }
 
     return true;
+};
+
+/**
+ * Rotate the given matrix clockwise by 90 degrees.
+ * @param matrix The matrix to rotate.
+ * @returns The rotated matrix.
+ */
+export const rotateMatrix = <T>(matrix: Matrix<T>): Matrix<T> => {
+    if (matrix.length === 0) {
+        return [];
+    }
+
+    const rows = matrix.length;
+    const cols = matrix[0].length;
+
+    // Create a new matrix with swapped rows and columns
+    const rotatedMatrix: Matrix<T> = new Array(cols);
+
+    // rotate the matrix
+    for (let i = 0; i < cols; ++i) {
+        for (let j = 0; j < rows; ++j) {
+            rotatedMatrix[i][j] = matrix[j][i];
+        }
+    }
+
+    return rotatedMatrix;
 };
