@@ -1,5 +1,5 @@
 import { runSolution } from "../utils.ts";
-import { type Matrix } from "../helpers/matrix.ts";
+import { type Matrix, MATRIX_DIRECTIONS } from "../helpers/matrix.ts";
 
 type Position = [number, number];
 
@@ -13,10 +13,17 @@ const DIRECTIONS = {
     LEFT: "<",
 };
 
+const MATRIX_DIRECTIONS_MAP = {
+    [DIRECTIONS.RIGHT]: MATRIX_DIRECTIONS[0],
+    [DIRECTIONS.LEFT]: MATRIX_DIRECTIONS[1],
+    [DIRECTIONS.DOWN]: MATRIX_DIRECTIONS[2],
+    [DIRECTIONS.UP]: MATRIX_DIRECTIONS[3],
+};
+
 const OBSTACLE = "#";
 const VISITED = "X";
 
-const validatePosition = (
+const isValidPosition = (
     position: Position,
     matrix: Matrix<string>
 ): boolean => {
@@ -26,22 +33,30 @@ const validatePosition = (
     );
 };
 
-/** provide your solution as the return of this function */
-export async function day6a(data: string[]) {
-    // console.log(data);
-    const matrix = parseData(data);
+const isObstacle = (position: Position, matrix: Matrix<string>): boolean => {
+    const [row, col] = position;
+    return OBSTACLE === matrix[row][col];
+};
+
+const rotateDirection = (direction: string): string => {
+    switch (direction) {
+        case DIRECTIONS.UP:
+            return DIRECTIONS.RIGHT;
+        case DIRECTIONS.RIGHT:
+            return DIRECTIONS.DOWN;
+        case DIRECTIONS.DOWN:
+            return DIRECTIONS.LEFT;
+        case DIRECTIONS.LEFT:
+            return DIRECTIONS.UP;
+        default:
+            return direction;
+    }
+};
+
+const getDirectionPosition = (matrix: Matrix<string>): Position | null => {
     const rows = matrix.length;
     const cols = matrix[0].length;
-
-    // console.log(matrix);
-
-    let patrolling = true;
     let position: Position | null = null;
-    let nextPosition: Position | null = null;
-    let current: string = "";
-    let next: string = "";
-
-    // find start position
     for (let i = 0; i < rows; ++i) {
         for (let j = 0; j < cols; ++j) {
             if (Object.values(DIRECTIONS).includes(matrix[i][j])) {
@@ -50,82 +65,68 @@ export async function day6a(data: string[]) {
         }
     }
 
-    console.log(position);
+    return position as Position | null;
+};
 
-    while (patrolling) {
-        // get current cell
-        current = matrix[position[0]][position[1]];
-        next = current;
+const getNextPositionFromDirection = (
+    position: Position,
+    direction: string,
+    matrix: Matrix<string>
+): Position | null => {
+    const [row, col] = position;
+    const [dx, dy] = MATRIX_DIRECTIONS_MAP[direction];
+
+    if (!isValidPosition([row + dx, col + dy], matrix)) {
+        return null;
+    }
+
+    return [row + dx, col + dy];
+};
+
+/** provide your solution as the return of this function */
+export async function day6a(data: string[]) {
+    const matrix = parseData(data);
+
+    // console.log(matrix);
+
+    let position: Position | null = null;
+    let nextPosition: Position | null = null;
+    let current: string = "";
+    let next: string = "";
+
+    // find start position
+    position = getDirectionPosition(matrix);
+
+    // console.log(position);
+
+    while (position !== null) {
         // console.log("\n");
         // console.log(matrix.map((x) => x.join("")).join("\n"));
         // console.log("\n");
 
         // handle movement
-        switch (current) {
-            case DIRECTIONS.UP: {
-                nextPosition = [position[0] - 1, position[1]];
-                if (
-                    validatePosition(nextPosition, matrix) &&
-                    matrix[nextPosition[0]][nextPosition[1]] === OBSTACLE
-                ) {
-                    // move right
-                    nextPosition = [position[0], position[1] + 1];
-                    next = DIRECTIONS.RIGHT;
-                }
-                break;
-            }
+        current = matrix[position[0]][position[1]];
+        nextPosition = getNextPositionFromDirection(position, current, matrix);
 
-            case DIRECTIONS.RIGHT: {
-                nextPosition = [position[0], position[1] + 1];
-                if (
-                    validatePosition(nextPosition, matrix) &&
-                    matrix[nextPosition[0]][nextPosition[1]] === OBSTACLE
-                ) {
-                    // move down
-                    nextPosition = [position[0] + 1, position[1]];
-                    next = DIRECTIONS.DOWN;
-                }
-                break;
-            }
-            case DIRECTIONS.DOWN: {
-                nextPosition = [position[0] + 1, position[1]];
-                if (
-                    validatePosition(nextPosition, matrix) &&
-                    matrix[nextPosition[0]][nextPosition[1]] === OBSTACLE
-                ) {
-                    // move left
-                    nextPosition = [position[0], position[1] - 1];
-                    next = DIRECTIONS.LEFT;
-                }
-                break;
-            }
-            case DIRECTIONS.LEFT: {
-                nextPosition = [position[0], position[1] - 1];
-                if (
-                    validatePosition(nextPosition, matrix) &&
-                    matrix[nextPosition[0]][nextPosition[1]] === OBSTACLE
-                ) {
-                    // move up
-                    nextPosition = [position[0] - 1, position[1]];
-                    next = DIRECTIONS.UP;
-                }
-                break;
-            }
-            default:
-                break;
+        if (nextPosition && isObstacle(nextPosition, matrix)) {
+            console.log("rotating");
+            // rotate if blocked by obstacle
+            next = rotateDirection(current);
+            nextPosition = getNextPositionFromDirection(position, next, matrix);
+            console.log("rotated nextPosition", nextPosition);
+        } else {
+            next = current;
         }
 
         // update current cell
         matrix[position[0]][position[1]] = VISITED;
 
-        // check if next is outside matrix and exit loop
-        if (validatePosition(nextPosition, matrix)) {
-            // update position
-            position = nextPosition;
+        // update position
+        position = nextPosition;
+
+        if (position) {
             // update next cell
-            matrix[nextPosition[0]][nextPosition[1]] = next;
-        } else {
-            patrolling = false;
+            matrix[position[0]][position[1]] = next;
         }
     }
 
