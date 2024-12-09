@@ -69,6 +69,11 @@ export const searchInDirection = (
     return true;
 };
 
+export type MatrixPosition = {
+    x: number;
+    y: number;
+};
+
 /**
  * Rotate the given matrix clockwise by 90 degrees.
  * @param matrix The matrix to rotate.
@@ -93,4 +98,10 @@ export const rotateMatrix = <T>(matrix: Matrix<T>): Matrix<T> => {
     }
 
     return rotatedMatrix;
+};
+
+export const printMatrix = <T>(matrix: Matrix<T>): void => {
+    console.log("\n");
+    console.log(matrix.map((x) => x.join("")).join("\n"));
+    console.log("\n");
 };
