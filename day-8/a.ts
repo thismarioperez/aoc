@@ -67,7 +67,7 @@ const detectNodeInDirection = (
 /** provide your solution as the return of this function */
 export async function day8a(data: string[]) {
     const m = parseData(data);
-    const antinodes: Set<MatrixPosition> = new Set();
+    const antinodes: MatrixPosition[] = [];
 
     printMatrix(m);
 
@@ -109,7 +109,7 @@ export async function day8a(data: string[]) {
                 // Add antinode to the set if node is found in direction
                 // and it is not an "antenna"
                 if (isNodeInDirection && !isAntenna(m, potentialNode)) {
-                    antinodes.add(potentialNode);
+                    antinodes.push(potentialNode);
                 }
             });
         });
