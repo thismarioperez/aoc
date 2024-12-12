@@ -50,19 +50,16 @@ const defrag = (disk: Disk): Disk => {
 
 const checksum = (disk: Disk): number => {
     return disk.reduce((acc, byte, idx) => {
-        if (byte !== null) {
-            acc += byte * idx;
-        }
-        return acc;
+        return (acc += (byte ?? 0) * idx);
     }, 0);
 };
 
 /** provide your solution as the return of this function */
 export async function day9a(data: string[]) {
-    const disk = parseData(data);
-    console.log(disk);
-    const defragged = defrag(disk);
-    console.log(defragged);
+    // const disk = parseData(data);
+    // console.log(disk);
+    // const defragged = defrag(disk);
+    // console.log(defragged);
     const result = checksum(defrag(parseData(data)));
     return result;
 }
