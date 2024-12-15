@@ -1,7 +1,7 @@
 import { runSolution } from "../utils.ts";
 
 const parseData = (data: string[]): number[] =>
-    data[0].split(" ").map((s) => parseInt(s));
+    data[0].trim().split(" ").map(Number);
 
 // Loop over list of "stones"
 // For each stone, do the following;
@@ -12,67 +12,61 @@ const parseData = (data: string[]): number[] =>
 //    If the right half contains only zeros, drop the extra zeros.
 // 3. If no other rule applies, multiply the value by 2024
 
-const processData = (data: number[], iterations: number): number[] => {
-    const transform = (
-        arr: number[],
-        remainingIterations: number
-    ): number[] => {
-        if (remainingIterations === 0) {
-            return arr;
-        }
+// Memory can't process stones individually.
+// Since stones don't change index, we can can count them within their group
+// starting from the first iteration of a stone.
 
-        const transformedArr: number[] = [];
+const cache = new Map<string, number>();
 
-        for (const value of arr) {
-            if (value === 0) {
-                // console.log(`${i} - rule 1`);
-                transformedArr.push(1);
-            } else if (value.toString().length % 2 === 0) {
-                // console.log(`${i} - rule 2`);
-                const numString = value.toString();
-                const numArr = numString.split("").map((s) => parseInt(s));
-                const mid = Math.floor(numString.length / 2);
-                const left = parseInt(
-                    numArr
-                        .slice(0, mid)
-                        .map((n) => n.toString())
-                        .join("")
-                );
-                const right = parseInt(
-                    numArr
-                        .slice(mid)
-                        .map((n) => n.toString())
-                        .join("")
-                );
+// this will recursive walk the depth of a stone and return the count of stones
+// that were created
+const blink = (stone: number, iteration): number => {
+    const key = `${stone}--${iteration}`;
 
-                transformedArr.push(left);
-                transformedArr.push(right);
-                // console.log(`${i} - rule 2`, {
-                //     numArr,
-                //     mid,
-                //     left: numArr.slice(0, mid),
-                //     right: numArr.slice(mid),
-                // });
-            } else {
-                // console.log(`${i} - rule 3`);
-                transformedArr.push(value * 2024);
-            }
-        }
+    if (cache.has(key)) {
+        return cache.get(key);
+    }
 
-        console.log(`iteration - ${iterations - remainingIterations + 1}`);
-        return transform(transformedArr, remainingIterations - 1);
-    };
+    if (iteration === 0) {
+        return 1;
+    }
 
-    const result = transform(data, iterations);
-    return result;
+    let count = 0;
+
+    // count the number of new stones for each blink rule
+    if (stone === 0) {
+        // walk the tree of stones from a root of 1
+        count = blink(1, iteration - 1);
+    } else if (stone.toString().length % 2 === 0) {
+        // walk the tree of stones from the new left and right stones
+        const mid = Math.floor(stone.toString().length / 2);
+        const left = parseInt(stone.toString().slice(0, mid));
+        const right = parseInt(stone.toString().slice(mid));
+
+        count = blink(left, iteration - 1) + blink(right, iteration - 1);
+    } else {
+        // walk the tree of stones from a root of the stone * 2024
+        count = blink(stone * 2024, iteration - 1);
+    }
+
+    // save to cache
+    cache.set(key, count);
+
+    return count;
 };
 
 /** provide your solution as the return of this function */
+
+const ITERATIONS = 75;
 export async function day11b(data: string[]) {
     const input = parseData(data);
-    const result = processData(input, 75);
-    console.log(result);
-    const total = result.length;
+    console.log(input);
+    let total = 0;
+
+    for (const stone of input) {
+        total += blink(stone, ITERATIONS);
+    }
+
     return total;
 }
 
